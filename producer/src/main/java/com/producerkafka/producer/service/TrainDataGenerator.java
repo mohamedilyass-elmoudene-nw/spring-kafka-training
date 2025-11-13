@@ -5,7 +5,6 @@ import net.datafaker.Faker;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -90,7 +89,7 @@ public class TrainDataGenerator {
      * Generates ServiceDetails with calling points
      */
     public ServiceDetails generateServiceDetails() {
-        String operatorIdx = random.nextInt(OPERATORS.size()).toString();
+        int operatorIdx = random.nextInt(OPERATORS.size());
         String stationCrs = getRandomStation();
         
         return ServiceDetails.builder()
@@ -102,8 +101,8 @@ public class TrainDataGenerator {
                 .serviceType("train")
                 .locationName(getStationName(stationCrs))
                 .crs(stationCrs)
-                .operator(OPERATORS.get(operatorIdx).toString())
-                .operatorCode(OPERATOR_CODES.get(operatorIdx).toString())
+                .operator(OPERATORS.get(operatorIdx))
+                .operatorCode(OPERATOR_CODES.get(operatorIdx))
                 .rsid(generateRSID())
                 .isCancelled(random.nextDouble() < 0.05) // 5% chance of cancellation
                 .cancelReason(random.nextDouble() < 0.05 ? "Staff shortage" : null)
