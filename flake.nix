@@ -17,6 +17,8 @@
             maven
             jdk21
             minikube
+            go-task
+            k9s
           ];
         };
       });
