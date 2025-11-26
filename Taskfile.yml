@@ -45,6 +45,14 @@ tasks:
     cmds:
       - mvn spring-boot:run
 
+  run-consumer:
+    desc: "Runs the Kafka consumer Spring Boot application"
+    dir: consumer
+    env:
+      KAFKA_BOOTSTRAP_SERVERS: "{{.KAFKA_BOOTSTRAP_SERVERS | default \"localhost:9092\"}}"
+    cmds:
+      - mvn spring-boot:run
+
   # Combined workflow
   dev:
     desc: "Setup everything and run producer"
