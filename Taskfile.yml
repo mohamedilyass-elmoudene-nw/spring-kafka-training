@@ -1,8 +1,55 @@
 version: '3'
 
 tasks:
+  # Kafka Cluster Management
+  setup-kafka:
+    desc: "Start Minikube and deploy Kafka cluster"
+    cmds:
+      - minikube start --memory=4096 --cpus=2
+      - helmfile sync
+      - kubectl wait --for=condition=ready pod -l app.kubernetes.io/name=kafka -n kafka --timeout=300s
+      - echo "Kafka is ready at $(minikube ip):30092"
+
+  kafka-status:
+    desc: "Check Kafka cluster status"
+    cmds:
+      - kubectl get pods -n kafka
+      - kubectl get svc -n kafka
+
+  kafka-logs:
+    desc: "View Kafka logs"
+    cmds:
+      - kubectl logs -f kafka-controller-0 -n kafka
+
+  kafka-shell:
+    desc: "Access Kafka pod shell"
+    cmds:
+      - kubectl exec -it kafka-controller-0 -n kafka -- bash
+
+  kafka-destroy:
+    desc: "Remove Kafka cluster"
+    cmds:
+      - helmfile destroy
+
+  kafka-info:
+    desc: "Display Kafka connection information"
+    cmds:
+      - echo "export KAFKA_BOOTSTRAP_SERVERS=$(minikube ip):30092"
+
+  # Application
   run-producer:
     desc: "Runs the Kafka producer Spring Boot application"
     dir: producer
+    env:
+      KAFKA_BOOTSTRAP_SERVERS: "{{.KAFKA_BOOTSTRAP_SERVERS | default \"localhost:9092\"}}"
     cmds:
       - mvn spring-boot:run
+
+  # Combined workflow
+  dev:
+    desc: "Setup everything and run producer"
+    cmds:
+      - task: setup-kafka
+      - task: kafka-info
+      - sleep 5
+      - task: run-producer

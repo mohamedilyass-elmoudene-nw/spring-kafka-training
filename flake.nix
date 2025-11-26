@@ -19,6 +19,9 @@
             minikube
             go-task
             k9s
+            kubectl
+            kubernetes-helm
+            helmfile
           ];
         };
       });
