@@ -37,6 +37,13 @@
             <artifactId>spring-kafka</artifactId>
         </dependency>
 
+        <!-- Shared Domain Models -->
+        <dependency>
+            <groupId>com.producerkafka</groupId>
+            <artifactId>train-domain-models</artifactId>
+            <version>1.0.0</version>
+        </dependency>
+
         <!-- JavaFaker for generating fake data -->
         <dependency>
             <groupId>net.datafaker</groupId>

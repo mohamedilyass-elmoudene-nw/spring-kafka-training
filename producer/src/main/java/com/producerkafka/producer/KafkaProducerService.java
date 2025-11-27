@@ -8,9 +8,9 @@ public class KafkaProducerService {
 
     private static final String TOPIC = "train-date";
 
-    private final KafkaTemplate<String, String> kafkaTemplate;
+    private final KafkaTemplate<String, Object> kafkaTemplate;
 
-    public KafkaProducerService(KafkaTemplate<String, String> kafkaTemplate) {
+    public KafkaProducerService(KafkaTemplate<String, Object> kafkaTemplate) {
         this.kafkaTemplate = kafkaTemplate;
     }
 
@@ -19,7 +19,7 @@ public class KafkaProducerService {
      * @param key the message key
      * @param message the message content
      */
-    public void sendMessage(String key, String message) {
+    public void sendMessage(String key, Object message) {
         kafkaTemplate.send(TOPIC, key, message);
     }
 
@@ -27,7 +27,7 @@ public class KafkaProducerService {
      * Sends a message to the train-date topic without a key
      * @param message the message content
      */
-    public void sendMessage(String message) {
+    public void sendMessage(Object message) {
         kafkaTemplate.send(TOPIC, message);
     }
 }

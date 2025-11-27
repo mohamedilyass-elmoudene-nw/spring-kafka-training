@@ -2,46 +2,37 @@ version: '3'
 
 tasks:
   # Kafka Cluster Management
-  setup-kafka:
-    desc: "Start Minikube and deploy Kafka cluster"
+  kafka-up:
+    desc: "Start Kafka and Kafka UI using Docker Compose"
     cmds:
-      - minikube start --memory=4096 --cpus=2
-      - helmfile sync
-      - kubectl wait --for=condition=ready pod -l app.kubernetes.io/name=kafka -n kafka --timeout=300s
-      - echo "Kafka is ready at $(minikube ip):30092"
+      - docker-compose up -d
 
-  kafka-status:
-    desc: "Check Kafka cluster status"
+  kafka-down:
+    desc: "Stop and remove Kafka and Kafka UI containers"
     cmds:
-      - kubectl get pods -n kafka
-      - kubectl get svc -n kafka
+      - docker-compose down
 
   kafka-logs:
     desc: "View Kafka logs"
     cmds:
-      - kubectl logs -f kafka-controller-0 -n kafka
+      - docker-compose logs -f kafka
+
+  kafka-ui-logs:
+    desc: "View Kafka UI logs"
+    cmds:
+      - docker-compose logs -f kafka-ui
 
   kafka-shell:
-    desc: "Access Kafka pod shell"
+    desc: "Access Kafka broker shell"
     cmds:
-      - kubectl exec -it kafka-controller-0 -n kafka -- bash
-
-  kafka-destroy:
-    desc: "Remove Kafka cluster"
-    cmds:
-      - helmfile destroy
-
-  kafka-info:
-    desc: "Display Kafka connection information"
-    cmds:
-      - echo "export KAFKA_BOOTSTRAP_SERVERS=$(minikube ip):30092"
+      - docker exec -it kafka-broker bash
 
   # Application
   run-producer:
     desc: "Runs the Kafka producer Spring Boot application"
     dir: producer
     env:
-      KAFKA_BOOTSTRAP_SERVERS: "{{.KAFKA_BOOTSTRAP_SERVERS | default \"localhost:9092\"}}"
+      KAFKA_BOOTSTRAP_SERVERS: "localhost:9092"
     cmds:
       - mvn spring-boot:run
 
@@ -49,15 +40,15 @@ tasks:
     desc: "Runs the Kafka consumer Spring Boot application"
     dir: consumer
     env:
-      KAFKA_BOOTSTRAP_SERVERS: "{{.KAFKA_BOOTSTRAP_SERVERS | default \"localhost:9092\"}}"
+      KAFKA_BOOTSTRAP_SERVERS: "localhost:9092"
     cmds:
       - mvn spring-boot:run
 
   # Combined workflow
   dev:
-    desc: "Setup everything and run producer"
+    desc: "Setup infrastructure"
     cmds:
-      - task: setup-kafka
-      - task: kafka-info
-      - sleep 5
-      - task: run-producer
+      - task: kafka-up
+      - echo "Kafka is running on localhost:9092"
+      - echo "Kafka UI is running on http://localhost:8080"
+

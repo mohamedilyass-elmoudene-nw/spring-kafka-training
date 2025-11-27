@@ -10,35 +10,28 @@ A complete Spring Boot + Kafka training project with UK train data generation an
 nix develop
 ```
 
-This provides all necessary tools: Maven, JDK 21, Minikube, Helm, Helmfile, Kubectl, and K9s.
+This provides all necessary tools: Maven, JDK 21, and Task.
 
-### 2. Deploy Kafka Cluster
+### 2. Start Infrastructure (Kafka + Kafka UI)
 
 ```shell
-# Start Minikube
-minikube start --memory=4096 --cpus=2
-
-# Deploy Kafka using Helmfile
-helmfile sync
-
-# Wait for Kafka to be ready
-kubectl wait --for=condition=ready pod -l app.kubernetes.io/name=kafka -n kafka --timeout=300s
+task kafka-up
 ```
 
-Or use the task runner:
+This will start:
+- **Kafka Broker** (KRaft mode) on `localhost:9092`
+- **Kafka UI** on `http://localhost:8080`
 
+### 3. Run Applications
+
+**Run the Producer:**
 ```shell
-task setup-kafka
-```
-
-### 3. Run the Kafka Producer
-
-```shell
-# Set Kafka connection
-export KAFKA_BOOTSTRAP_SERVERS=$(minikube ip):30092
-
-# Run producer
 task run-producer
+```
+
+**Run the Consumer:**
+```shell
+task run-consumer
 ```
 
 ## Project Structure
@@ -47,55 +40,47 @@ task run-producer
   - Generates realistic UK train station data
   - Sends messages to Kafka topics
   - Auto-scheduled data publishing
-- `helmfile.yaml` - Kafka cluster configuration
-- `values/` - Helm chart values for Kafka
+- `consumer/` - Spring Boot Kafka consumer application
+  - Consumes train data messages
+  - Deserializes JSON payloads
+- `docker-compose.yml` - Local infrastructure (Kafka, Kafka UI)
 - `Taskfile.yml` - Common development tasks
 
 ## Features
 
 - ✅ Automated UK train data generation (stations, services, schedules)
 - ✅ Kafka producer with Spring Boot
+- ✅ Kafka consumer with Spring Boot
 - ✅ KRaft mode Kafka (no Zookeeper required)
-- ✅ Minikube-based local development
-- ✅ Helmfile for infrastructure as code
+- ✅ Docker Compose for local development
+- ✅ Kafka UI for easy monitoring
 - ✅ Nix flake for reproducible environment
-
-## Documentation
-
-- [Kafka Setup Guide](KAFKA_SETUP.md) - Detailed Kafka cluster setup and management
-- [Producer Documentation](producer/README.md) - Producer application details
 
 ## Common Tasks
 
 ```shell
-# Kafka Management
-task setup-kafka      # Start Minikube and deploy Kafka
-task kafka-status     # Check Kafka cluster status
+# Infrastructure Management
+task kafka-up         # Start Kafka and Kafka UI
+task kafka-down       # Stop infrastructure
 task kafka-logs       # View Kafka logs
-task kafka-shell      # Access Kafka pod shell
-task kafka-destroy    # Remove Kafka cluster
+task kafka-ui-logs    # View Kafka UI logs
+task kafka-shell      # Access Kafka broker shell
 
 # Application
 task run-producer     # Run the producer application
+task run-consumer     # Run the consumer application
 ```
 
 ## Development Workflow
 
-1. Start Kafka cluster: `task setup-kafka`
-2. Run producer: `task run-producer`
-3. Monitor with K9s: `k9s -n kafka`
-4. View Kafka logs: `task kafka-logs`
-
-## Next Steps
-
-- [ ] Create consumer application
-- [ ] Add Kafka UI for monitoring
-- [ ] Implement data processing pipelines
-- [ ] Add integration tests
+1. Start Kafka cluster: `task kafka-up`
+2. Open Kafka UI: [http://localhost:8080](http://localhost:8080)
+3. Run consumer: `task run-consumer`
+4. Run producer: `task run-producer`
+5. Monitor logs and Kafka UI
 
 ## Resources
 
 - [Apache Kafka Documentation](https://kafka.apache.org/documentation/)
 - [Spring Kafka Documentation](https://spring.io/projects/spring-kafka)
-- [Bitnami Kafka Helm Chart](https://github.com/bitnami/charts/tree/main/bitnami/kafka)
-
+- [Kafka UI](https://github.com/provectus/kafka-ui)

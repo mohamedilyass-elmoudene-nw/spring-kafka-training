@@ -1,8 +1,5 @@
 package com.producerkafka.producer.scheduler;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.producerkafka.producer.KafkaProducerService;
 import com.producerkafka.producer.service.TrainDataGenerator;
 import lombok.extern.slf4j.Slf4j;
@@ -21,17 +18,11 @@ public class DataPublisherScheduler {
     
     private final TrainDataGenerator dataGenerator;
     private final KafkaProducerService kafkaProducerService;
-    private final ObjectMapper objectMapper;
     
     public DataPublisherScheduler(TrainDataGenerator dataGenerator, 
                                   KafkaProducerService kafkaProducerService) {
         this.dataGenerator = dataGenerator;
         this.kafkaProducerService = kafkaProducerService;
-        
-        // Configure ObjectMapper for LocalDateTime serialization
-        this.objectMapper = new ObjectMapper();
-        this.objectMapper.registerModule(new JavaTimeModule());
-        this.objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
     }
     
     /**
@@ -54,17 +45,14 @@ public class DataPublisherScheduler {
             Object trainData = dataGenerator.generateRandomData();
             String dataType = trainData.getClass().getSimpleName();
             
-            // Serialize to JSON
-            String jsonData = objectMapper.writeValueAsString(trainData);
-            
             // Send to Kafka with data type as key
-            kafkaProducerService.sendMessage(dataType, jsonData);
+            // The JsonSerializer will handle serialization and add the type header
+            kafkaProducerService.sendMessage(dataType, trainData);
             
-            log.info("Published {} to Kafka (size: {} bytes)", dataType, jsonData.length());
+            log.info("Published {} to Kafka", dataType);
             
         } catch (Exception e) {
             log.error("Error publishing train data to Kafka", e);
         }
     }
 }
-
