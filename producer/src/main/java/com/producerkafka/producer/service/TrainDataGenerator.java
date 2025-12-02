@@ -54,6 +54,38 @@ public class TrainDataGenerator {
         }
     }
     
+    private final java.time.format.DateTimeFormatter timeFormatter = java.time.format.DateTimeFormatter.ofPattern("HH:mm");
+
+    /**
+     * Generates a consistent Scheduled and Estimated time pair.
+     * Logic: STA is calculated based on ETA to ensure consistent latency.
+     */
+    private TimePair generateTimePair() {
+        // 1. Generate a base Estimated Time (ETA/ETD)
+        int hour = random.nextInt(24);
+        int minute = random.nextInt(60);
+        java.time.LocalTime estimated = java.time.LocalTime.of(hour, minute);
+
+        // 2. Determine delay (Latency)
+        // 70% On Time, 25% Minor Delay (1-15m), 5% Major Delay (15-90m)
+        long delayMinutes = 0;
+        double chance = random.nextDouble();
+        
+        if (chance > 0.95) {
+            delayMinutes = random.nextInt(75) + 15;
+        } else if (chance > 0.70) {
+            delayMinutes = random.nextInt(15) + 1;
+        }
+        
+        // 3. Calculate Scheduled Time (STA = ETA - Delay)
+        java.time.LocalTime scheduled = estimated.minusMinutes(delayMinutes);
+
+        return new TimePair(
+            scheduled.format(timeFormatter),
+            estimated.format(timeFormatter)
+        );
+    }
+
     /**
      * Generates a StationBoard with random train services
      */
@@ -92,6 +124,9 @@ public class TrainDataGenerator {
         int operatorIdx = random.nextInt(OPERATORS.size());
         String stationCrs = getRandomStation();
         
+        TimePair arrivalTimes = generateTimePair();
+        TimePair departureTimes = generateTimePair();
+
         return ServiceDetails.builder()
                 .adhocAlerts(generateAdhocAlerts())
                 .formation(generateFormationData())
@@ -112,11 +147,11 @@ public class TrainDataGenerator {
                 .detachFront(false)
                 .isReverseFormation(false)
                 .platform(String.valueOf(random.nextInt(12) + 1))
-                .sta(generateTimeString())
-                .eta(generateTimeString())
-                .ata(null)
-                .std(generateTimeString())
-                .etd(generateTimeString())
+                .sta(arrivalTimes.scheduled())
+                .eta(arrivalTimes.estimated())
+                .ata(arrivalTimes.estimated()) // Using ETA as ATA for simulation
+                .std(departureTimes.scheduled())
+                .etd(departureTimes.estimated())
                 .atd(null)
                 .xmlns(XmlSerializerNamespaces.builder().count(0).build())
                 .build();
@@ -161,6 +196,9 @@ public class TrainDataGenerator {
         String destCrs = getRandomStation();
         int operatorIdx = random.nextInt(OPERATORS.size());
         
+        TimePair arrivalTimes = generateTimePair();
+        TimePair departureTimes = generateTimePair();
+        
         return ServiceItem.builder()
                 .formation(generateFormationData())
                 .origin(List.of(createServiceLocation(originCrs)))
@@ -168,10 +206,10 @@ public class TrainDataGenerator {
                 .currentOrigins(List.of(createServiceLocation(originCrs)))
                 .currentDestinations(List.of(createServiceLocation(destCrs)))
                 .rsid(generateRSID())
-                .sta(generateTimeString())
-                .eta(generateTimeString())
-                .std(generateTimeString())
-                .etd(generateTimeString())
+                .sta(arrivalTimes.scheduled())
+                .eta(arrivalTimes.estimated())
+                .std(departureTimes.scheduled())
+                .etd(departureTimes.estimated())
                 .platform(String.valueOf(random.nextInt(12) + 1))
                 .operator(OPERATORS.get(operatorIdx))
                 .operatorCode(OPERATOR_CODES.get(operatorIdx))
@@ -242,11 +280,12 @@ public class TrainDataGenerator {
         
         for (int i = 0; i < numPoints; i++) {
             String crs = getRandomStation();
+            TimePair times = generateTimePair();
             callingPoints.add(CallingPoint.builder()
                     .locationName(getStationName(crs))
                     .crs(crs)
-                    .st(generateTimeString())
-                    .et(generateTimeString())
+                    .st(times.scheduled())
+                    .et(times.estimated())
                     .at(null)
                     .isCancelled(false)
                     .length(random.nextInt(8) + 4)
@@ -297,14 +336,6 @@ public class TrainDataGenerator {
                 random.nextInt(100000));
     }
     
-    /**
-     * Generates a time string in HH:mm format
-     */
-    private String generateTimeString() {
-        int hour = random.nextInt(24);
-        int minute = random.nextInt(60);
-        return String.format("%02d:%02d", hour, minute);
-    }
     
     /**
      * Gets a random station CRS code
