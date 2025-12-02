@@ -72,7 +72,7 @@ public class TrainDataGenerator {
         double chance = random.nextDouble();
         
         if (chance > 0.95) {
-            delayMinutes = random.nextInt(75) + 15;
+            delayMinutes = random.nextInt(76) + 15;
         } else if (chance > 0.70) {
             delayMinutes = random.nextInt(15) + 1;
         }
