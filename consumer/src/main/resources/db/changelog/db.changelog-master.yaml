@@ -38,6 +38,7 @@ databaseChangeLog:
               - column:
                   name: train_service_item_id
                   type: INT
+                  autoIncrement: true
                   constraints:
                     primaryKey: true
                     nullable: false
@@ -68,6 +69,7 @@ databaseChangeLog:
               - column:
                   name: activity_id
                   type: BIGINT
+                  autoIncrement: true
                   constraints:
                     primaryKey: true
                     nullable: false
@@ -112,4 +114,15 @@ databaseChangeLog:
             columns:
               - column:
                   name: fk_time_id
+
+  - changeSet:
+      id: 5
+      author: hexagonal_refactor
+      changes:
+        - addColumn:
+            tableName: train_service_item
+            columns:
+              - column:
+                  name: rsid
+                  type: VARCHAR(64)
 
