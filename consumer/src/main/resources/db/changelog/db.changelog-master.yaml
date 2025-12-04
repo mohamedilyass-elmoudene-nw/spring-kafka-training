@@ -1,0 +1,115 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1
+      author: system
+      changes:
+        - createTable:
+            tableName: dim_time
+            columns:
+              - column:
+                  name: date_id
+                  type: INT
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: day
+                  type: VARCHAR(20)
+              - column:
+                  name: month
+                  type: INT
+              - column:
+                  name: week
+                  type: INT
+              - column:
+                  name: year
+                  type: INT
+              - column:
+                  name: time
+                  type: TIME
+
+  - changeSet:
+      id: 2
+      author: system
+      changes:
+        - createTable:
+            tableName: train_service_item
+            columns:
+              - column:
+                  name: train_service_item_id
+                  type: INT
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+                    autoIncrement: true
+              - column:
+                  name: arrival_station_name
+                  type: VARCHAR(255)
+              - column:
+                  name: arrival_station_abrv
+                  type: VARCHAR(10)
+              - column:
+                  name: sta
+                  type: TIMESTAMP
+              - column:
+                  name: eta
+                  type: TIMESTAMP
+              - column:
+                  name: operator
+                  type: VARCHAR(100)
+
+  - changeSet:
+      id: 3
+      author: system
+      changes:
+        - createTable:
+            tableName: fact_train_activity
+            columns:
+              - column:
+                  name: activity_id
+                  type: BIGINT
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+                    autoIncrement: true
+              - column:
+                  name: fk_train_service_item_id
+                  type: INT
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_train_service_item
+                    references: train_service_item(train_service_item_id)
+              - column:
+                  name: fk_time_id
+                  type: INT
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_time
+                    references: dim_time(date_id)
+              - column:
+                  name: latency_minutes
+                  type: INT
+              - column:
+                  name: is_delayed
+                  type: INT
+                  constraints:
+                    nullable: false
+                    defaultValueNumeric: 0
+
+  - changeSet:
+      id: 4
+      author: system
+      changes:
+        - createIndex:
+            indexName: idx_fact_train_service
+            tableName: fact_train_activity
+            columns:
+              - column:
+                  name: fk_train_service_item_id
+        - createIndex:
+            indexName: idx_fact_time
+            tableName: fact_train_activity
+            columns:
+              - column:
+                  name: fk_time_id
+
